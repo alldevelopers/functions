@@ -3,37 +3,48 @@ require_once 'config.php';
 require_once 'database.php';
 
 /**
- * Calcula Juros com base no modelo exato mostrado na imagem.
+ * Calcula Juros Compostos Anual de forma dinâmica.
  * 
- * A fórmula identificada é:
- * 1. Calcular meses = dias / 30
- * 2. Calcular meses para juros = meses / 12
- * 3. Juros = Principal * (Percentual/100) * (Meses/12)
+ * Aplica a fórmula: (JUROS/100+1) ^ (QTDE MESES/12)
+ * O expoente é calculado dinamicamente como QTDE MESES/12
  */
-function calcularJurosSimples($valor, $percentualJuros, $dias, $diasBase = 30, $dividirPor = 12)
+function calcularJurosCompostosAnual($valor, $taxaAnual, $dias, $diasBase = 30)
 {
-    // Cálculo da quantidade de meses
+    // Taxa em formato decimal
+    $taxaDecimal = $taxaAnual / 100;
+
+    // Calculamos a quantidade de meses
     $qtdeMeses = $dias / $diasBase;
 
-    // Cálculo da quantidade de meses para o cálculo (conforme mostrado na imagem)
-    $qtdeMesesCalculo = $qtdeMeses / $dividirPor;
+    // Calculamos a quantidade anual (referência para exibição)
+    $qtdeAnual = 12; // Fixo em 12 para representar os 12 meses do ano
 
-    // Cálculo dos juros (exatamente como mostrado na imagem)
-    $juros = $valor * ($percentualJuros / 100) * $qtdeMesesCalculo;
+    // Calculamos o expoente para a fórmula (qtdeMeses/12)
+    // Este é o valor usado na imagem (12.2/12 = 1.016667)
+    $expoente = $qtdeMeses / 12;
 
-    // Total (principal + juros)
-    $total = $valor + $juros;
+    // Calculamos o fator de juros: (1 + taxa)^(expoente)
+    $fator = pow((1 + $taxaDecimal), $expoente);
 
+    // Calculamos o montante: Principal * Fator
+    $montante = $valor * $fator;
+
+    // Calculamos os juros
+    $juros = $montante - $valor;
+
+    // Retorno da função com todos os detalhes para exibição
     return [
         'dias' => $dias,
         'dias_base' => $diasBase,
         'qtde_meses' => $qtdeMeses,
-        'dividir_por' => $dividirPor,
-        'qtde_meses_calculo' => $qtdeMesesCalculo,
-        'percentual_juros' => $percentualJuros,
-        'principal' => $valor,
+        'qtde_anual' => $qtdeAnual,
+        'expoente' => $expoente,  // Expoente da fórmula (qtdeMeses/12)
+        'taxa_anual' => $taxaAnual,
+        'valor_principal' => $valor,
+        'fator_1' => (1 + $taxaDecimal),  // Valor da 1a. parte da fórmula
+        'fator_juros' => $fator,
         'juros' => round($juros, 2),
-        'total' => round($total, 2)
+        'total' => round($montante, 2)
     ];
 }
 
@@ -100,8 +111,7 @@ try {
 }
 
 $resultado = null;
-$diasBase = 30; // Dias base conforme a imagem
-$dividirPor = 12; // Divisor conforme a imagem
+$diasBase = 30; // Dias base
 
 // Processa o formulário (POST).
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -137,8 +147,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
         }
 
-        // Calcula os juros conforme o modelo
-        $resultado = calcularJurosSimples($valorCorrigido, $taxaAnual, $dias, $diasBase, $dividirPor);
+        // Calcula os juros compostos anuais
+        $resultado = calcularJurosCompostosAnual($valorCorrigido, $taxaAnual, $dias, $diasBase);
     }
 }
 ?>
@@ -148,11 +158,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <head>
     <meta charset="UTF-8">
-    <title>Juros Simples Anual</title>
+    <title>Juros Compostos Anual</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .bg-yellow {
             background-color: yellow;
+        }
+
+        .bg-cyan {
+            background-color: cyan;
         }
     </style>
 </head>
@@ -160,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="bg-light p-4">
     <div class="container bg-white p-4 rounded shadow-sm">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">JUROS SIMPLES ANUAL</h4>
+            <h4 class="mb-0">JUROS ANUAL COMPOSTOS</h4>
             <a href="index.php" class="btn btn-outline-secondary btn-sm">Voltar</a>
         </div>
 
@@ -213,7 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Tipo de Juros:</label>
                     <select name="tipo_juros" class="form-select" disabled>
-                        <option selected>Juros Simples Anual</option>
+                        <option selected>Juros Anual Compostos</option>
                     </select>
                 </div>
                 <div class="col-md-6 mb-3">
@@ -244,23 +258,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <?php if ($resultado): ?>
             <div class="mt-4">
-                <h5 class="alert-heading">JUROS SIMPLES ANUAL</h5>
-                <p><strong>PRINCIPAL:</strong> R$ <?= number_format($resultado['principal'], 2, ',', '.') ?></p>
+                <h5>JUROS ANUAL COMPOSTOS</h5>
+                <p><strong>VALOR:</strong> R$ <?= number_format($resultado['valor_principal'], 2, ',', '.') ?></p>
 
-                <h5 class="mt-3">JUROS</h5>
-                <p><strong>DATA INICIAL:</strong> <?= date('d/m/Y', strtotime($_POST['data_inicio_juros'])) ?></p>
-                <p><strong>DATA FINAL:</strong> <?= date('d/m/Y', strtotime($_POST['data_fim_juros'])) ?></p>
+                <h5 class="mt-3">DETALHES</h5>
+                <p><strong>INICIO:</strong> <?= date('d/m/Y', strtotime($_POST['data_inicio_juros'])) ?></p>
+                <p><strong>FINAL:</strong> <?= date('d/m/Y', strtotime($_POST['data_fim_juros'])) ?></p>
                 <p><strong>QTDE DIAS:</strong> <?= number_format($resultado['dias'], 2, ',', '.') ?></p>
-                <p><strong>DIAS BASE:</strong> <?= number_format($resultado['dias_base'], 2, ',', '.') ?></p>
-                <p><strong>PERCENTUAL JUROS ANUAIS:</strong> <?= number_format($resultado['percentual_juros'], 2, ',', '.') ?>%</p>
+                <p><strong>MESES:</strong> <?= number_format($resultado['dias_base'], 0, ',', '.') ?></p>
                 <p><strong>QTDE MESES:</strong> <?= number_format($resultado['qtde_meses'], 2, ',', '.') ?></p>
-                <p><strong>DIVIDIR POR:</strong> <?= $resultado['dividir_por'] ?></p>
-                <p><strong>QTDE MESES:</strong> <?= number_format($resultado['qtde_meses_calculo'], 7, ',', '.') ?></p>
+                <p><strong>JUROS:</strong> <?= number_format($resultado['taxa_anual'], 2, ',', '.') ?></p>
+                <p><strong>TOTAL JUROS:</strong> <?= number_format($resultado['qtde_meses'], 2, ',', '.') ?></p>
+                <p><strong>ANUAL:</strong> <?= number_format($resultado['qtde_anual'], 0, ',', '.') ?></p>
+
+                <h5 class="mt-3 bg-yellow">FÓRMULA</h5>
+                <p><strong>FÓRMULA:</strong> (JUROS/100+1) ^ (<?= number_format($resultado['expoente'], 6, ',', '.') ?>)</p>
+                <p><strong>VALOR DA 1A. PARTE FÓRMULA:</strong> (<?= number_format($resultado['taxa_anual'], 2, ',', '.') ?> / 100 + 1 = <?= number_format($resultado['fator_1'], 4, ',', '.') ?>)</p>
+                <p><strong>COMO FICA A FÓRMULA:</strong> <?= number_format($resultado['fator_1'], 4, ',', '.') ?> ^ <?= number_format($resultado['expoente'], 6, ',', '.') ?></p>
 
                 <h5 class="mt-3">RESUMO FINAL</h5>
-                <p><strong>VALOR CORRIGIDO:</strong> R$ <?= number_format($resultado['principal'], 2, ',', '.') ?></p>
-                <p class="bg-yellow"><strong>VALOR DOS JUROS:</strong> R$ <?= number_format($resultado['juros'], 2, ',', '.') ?></p>
-                <p class="bg-yellow"><strong>TOTAL ATUALIZADO:</strong> R$ <?= number_format($resultado['total'], 2, ',', '.') ?></p>
+                <p><strong>RESULTADO:</strong> <?= number_format($resultado['fator_juros'], 8, ',', '.') ?> DE JUROS CAPITALIZADOS</p>
+                <p class="bg-yellow"><strong>VALOR DO JUROS:</strong> R$ <?= number_format($resultado['juros'], 2, ',', '.') ?></p>
+                <p class="bg-yellow"><strong>VALOR TOTAL:</strong> R$ <?= number_format($resultado['total'], 2, ',', '.') ?></p>
             </div>
         <?php endif; ?>
     </div>

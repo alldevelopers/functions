@@ -32,6 +32,7 @@
                 </div>
             </div>
 
+
             <div class="col">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
@@ -41,7 +42,41 @@
                     </div>
                 </div>
             </div>
-            
+
+
+            <div class="col">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Juros Compostos (Mensal)</h5>
+                        <p class="card-text">Cálculo de juros compostos com capitalização mensal e possibilidade de considerar correção monetária.</p>
+                        <a href="/juros-compostos-mensal" class="btn btn-primary">Acessar</a>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="col">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Juros Compostos (Semestral)</h5>
+                        <p class="card-text">Cálculo de juros compostos com capitalização semestral e possibilidade de correção monetária.</p>
+                        <a href="/juros-compostos-semestral" class="btn btn-primary">Acessar</a>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="col">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Juros Compostos (Anual)</h5>
+                        <p class="card-text">Cálculo de juros compostos anuais com aplicação de capitalização acumulada e opção de correção monetária.</p>
+                        <a href="/juros-compostos-anual" class="btn btn-primary">Acessar</a>
+                    </div>
+                </div>
+            </div>
+
+
             <!-- Espaço para outras calculadoras -->
             <div class="col">
                 <div class="card h-100 border-secondary-subtle">

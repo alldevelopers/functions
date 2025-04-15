@@ -20,7 +20,6 @@ function calcularJurosCompostosAnual($valor, $taxaAnual, $dias, $diasBase = 30)
     $qtdeAnual = 12; // Fixo em 12 para representar os 12 meses do ano
 
     // Calculamos o expoente para a fórmula (qtdeMeses/12)
-    // Este é o valor usado na imagem (12.2/12 = 1.016667)
     $expoente = $qtdeMeses / 12;
 
     // Calculamos o fator de juros: (1 + taxa)^(expoente)

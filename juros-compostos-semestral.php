@@ -20,7 +20,6 @@ function calcularJurosCompostosSemestral($valor, $taxaSemestral, $dias, $diasBas
     $qtdeSemestres = floor($qtdeMeses / 6);  // Sempre mostra semestres inteiros
 
     // Calculamos o expoente para a fórmula (qtdeMeses/2)
-    // Este é o valor usado na imagem (12.2/2 = 6.1)
     $expoente = $qtdeMeses / 2;
 
     // Calculamos o fator de juros: (1 + taxa)^(expoente)

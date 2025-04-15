@@ -1,0 +1,23 @@
+RewriteEngine On
+RewriteBase /
+
+# Remover .php da URL
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^([a-zA-Z0-9_-]+)$ $1.php [L]
+
+# Charset padrão
+AddDefaultCharset UTF-8
+
+# Proteger arquivos sensíveis
+<FilesMatch "\\.(htaccess|htpasswd|ini|log|sh)$">
+  Order Allow,Deny
+  Deny from all
+</FilesMatch>
+
+# Impedir listagem de diretórios
+Options -Indexes
+
+# Páginas de erro personalizadas (opcional)
+ErrorDocument 403 /403.html
+ErrorDocument 404 /404.html
